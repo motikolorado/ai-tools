@@ -117,6 +117,9 @@ async function runEndpointAudit(args: { url: string }) {
     if (fixes.length === 0 && status !== null && status >= 200 && status < 400 && mcpCard) {
       fixes.push("Endpoint looks healthy and x402-ready — no urgent fixes");
     }
+    if (fixes.length === 0 && status !== null && status >= 200 && status < 400 && !mcpCard) {
+      fixes.push("Endpoint responds but has no /.well-known/mcp/server-card.json — add one so scanners can discover it");
+    }
   } catch (err: unknown) {
     status = null;
     if (err && typeof err === "object" && "name" in err && err.name === "AbortError") {
@@ -193,7 +196,8 @@ async function runTokenRiskScan(args: { token: string }) {
 tools.push({
   alias: "endpoint_audit",
   name: "endpoint_audit",
-  description: "Audit a URL: status, headers, JSON body keys, x402 readiness. Returns score 0-100 + up to 5 fixes. Price: $0.02 on Base Sepolia via x402.",
+  description:
+    "Audit a live URL and return a 0-100 health + x402-readiness score with up to 5 concrete fixes. Purpose: let agents verify an HTTP endpoint before trusting or paying it. Usage: pass a single url (http/https); the tool fetches it (follow redirects, 8s timeout) and inspects status, response headers, whether the body is JSON with keys, and whether /.well-known/mcp/server-card.json exists. It also flags 401/403 auth gaps, 402 x402-accepts presence, and 4xx/5xx issues. Response: a JSON object with url, status, headers, bodyKeys, mcpCard (bool), score (0-100), and fixes (array of strings, up to 5). Price: $0.02 on Base Sepolia via x402.",
   schema: { url: { type: "string", description: "URL to audit (http or https)" } },
   handler: runEndpointAudit as (args: unknown) => Promise<{ content: Array<{ type: "text"; text: string }> }>,
 });
@@ -201,7 +205,8 @@ tools.push({
 tools.push({
   alias: "token_risk_scan",
   name: "token_risk_scan",
-  description: "Scan a token contract for common risks. Price: $0.02 on Base Sepolia via x402. Results include risk level (low/medium/high/critical), score 0-100, per-check details, and warnings.",
+  description:
+    "Scan an Ethereum token address for common risk signals and return a risk level (low/medium/high/critical), a 0-100 score, per-check details, and warnings. Purpose: let agents vet a token before interacting with or trusting it. Usage: pass a single token address (0x-prefixed 42-char Ethereum address); the tool validates the format and checksum, compares it to the known USDC address on Base Sepolia, and reports formatValid, checksummed (yes/no), chain, and any warnings. Response: a JSON object with address, label (truncated address), risk, score (0-100), checks (object with formatValid and checksummed), and warnings (array of strings). If the address is missing or malformed, the tool returns label 'INVALID' with risk 'high' and score 35 rather than a generic error. Price: $0.02 on Base Sepolia via x402.",
   schema: { token: { type: "string", description: "Ethereum token contract address to scan (e.g. 0x...)" } },
   handler: runTokenRiskScan as (args: unknown) => Promise<{ content: Array<{ type: "text"; text: string }> }>,
 });
@@ -264,7 +269,7 @@ async function main() {
   const serverCard = {
     name: SERVER_NAME,
     description:
-      "Multi-tool paid MCP server: endpoint_audit + token_risk_scan behind aliases. Shared x402 payment (Base Sepolia, $0.02), shared transport, shared response shape. Deployed at https://rado-ai-tools.fly.dev.",
+      "Multi-tool paid MCP server: endpoint_audit + token_risk_scan behind aliases. Agents call one tool per request; payment is per-call via x402 (USDC on Base Sepolia, $0.02). endpoint_audit audits a URL (status, headers, JSON body, MCP card presence) and returns a 0-100 score with up to 5 fixes. token_risk_scan validates an Ethereum token address (format, checksum, USDC match) and returns a risk level, 0-100 score, per-check details, and warnings. Deployed at https://rado-ai-tools.fly.dev.",
     repository: "https://github.com/motikolorado/ai-tools",
     homepage: "https://rado-ai-tools.fly.dev",
     version: SERVER_VERSION,
