@@ -1,5 +1,5 @@
 {
-  "name": "rado-ai-tools",
+  "name": "ai-tools",
   "description": "Multi-tool paid MCP server: endpoint_audit + token_risk_scan behind aliases. Shared x402 payment (Base Sepolia, $0.02), shared transport, shared response shape. Deployed at https://rado-ai-tools.fly.dev.",
   "repository": "https://github.com/motikolorado/ai-tools",
   "homepage": "https://rado-ai-tools.fly.dev",

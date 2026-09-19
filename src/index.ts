@@ -263,8 +263,19 @@ async function main() {
 
   const serverCard = {
     name: SERVER_NAME,
-    description: "Multi-tool MCP server: endpoint_audit, token_risk_scan (paid via x402).",
+    description:
+      "Multi-tool paid MCP server: endpoint_audit + token_risk_scan behind aliases. Shared x402 payment (Base Sepolia, $0.02), shared transport, shared response shape. Deployed at https://rado-ai-tools.fly.dev.",
+    repository: "https://github.com/motikolorado/ai-tools",
+    homepage: "https://rado-ai-tools.fly.dev",
     version: SERVER_VERSION,
+    license: "MIT",
+    pricing: {
+      model: "pay-per-call",
+      currency: "USDC",
+      pricePerCall: "0.02",
+      network: "eip155:84532",
+      currencyContract: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+    },
     tools: tools.map((t) => ({
       name: t.alias,
       description: t.description,
@@ -297,7 +308,6 @@ async function main() {
           const transport = new WebStandardStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,
           });
-          await mcpServer.connect(transport);
           return await transport.handleRequest(req);
         } catch (err: unknown) {
           console.error("transport.handleRequest error:", err);
