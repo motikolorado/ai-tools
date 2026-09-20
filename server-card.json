@@ -1,9 +1,9 @@
 {
   "name": "ai-tools",
-  "description": "Paid MCP tools: endpoint_audit + token_risk_scan. x402 USDC per call. Streamable HTTP at /mcp.",
+  "description": "Paid MCP tools for endpoint auditing and conservative on-chain address inspection.",
   "repository": "https://github.com/motikolorado/ai-tools",
   "homepage": "https://rado-ai-tools.fly.dev",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "license": "MIT",
   "pricing": {
     "model": "pay-per-call",
@@ -15,12 +15,12 @@
   "tools": [
     {
       "name": "endpoint_audit",
-      "description": "Audit a URL: status, headers, JSON keys, MCP server-card. Score 0-100 + up to 5 fixes.",
+      "description": "Audit a URL for availability and MCP/x402 discovery signals. SSRF protected.",
       "pricePerCall": "0.02"
     },
     {
       "name": "token_risk_scan",
-      "description": "Scan an address on-chain (eth_getCode, nonce, format). Risk level + score 0-100.",
+      "description": "Conservative address/bytecode snapshot. Not a honeypot or security detector.",
       "pricePerCall": "0.02"
     }
   ]

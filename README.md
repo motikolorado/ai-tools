@@ -1,56 +1,43 @@
 # ai-tools
 
-Paid MCP server: `endpoint_audit` and `token_risk_scan`. Streamable HTTP + x402 USDC.
+Paid MCP server providing `endpoint_audit` and `token_risk_scan` over Streamable HTTP with x402 USDC payments.
 
-Live: https://rado-ai-tools.fly.dev/mcp
+## Security and production posture
+
+- Redirects are manually followed and every destination is revalidated for SSRF.
+- Private, loopback, link-local, mapped IPv4/IPv6 addresses and unsafe internal hostnames are rejected.
+- Requests have timeouts, redirect limits, and a 64 KiB response limit.
+- Test routes are disabled by default and require a test token when configured.
+- Metrics are private unless `METRICS_TOKEN` is configured.
+- Startup configuration is validated before the server starts.
+- CI runs type checking, tests, dependency auditing, and a Docker build.
 
 ## Tools
 
-| Tool | Price | What it does |
-|---|---|---|
-| `endpoint_audit` | $0.02 | GET a URL (SSRF-blocked), score health + MCP/x402 readiness, up to 5 fixes |
-| `token_risk_scan` | $0.02 | Format + on-chain `eth_getCode` / nonce on configured chain |
-| `ping` | free | Health |
+| Tool | Price | Purpose |
+|---|---:|---|
+| `endpoint_audit` | $0.02 | Availability and MCP/x402 discovery signals for a URL. This is not a penetration test. |
+| `token_risk_scan` | $0.02 | Conservative address/bytecode snapshot. This is not a honeypot or security detector. |
+| `ping` | free | Health check |
 
-Network default: Base Sepolia (`eip155:84532`). Flip `X402_NETWORK` + `FACILITATOR_URL` + `RPC_URL` for mainnet.
+## Configuration
 
-## Testnet endpoints (no payment)
-
-Enabled automatically on Sepolia. Disable with `ENABLE_TEST_ENDPOINTS=false`. Optional `TEST_ENDPOINT_TOKEN`.
+Copy `.env.example`, set `EVM_ADDRESS`, `FACILITATOR_URL`, and `RPC_URL`, then build and start:
 
 ```bash
-curl -s https://rado-ai-tools.fly.dev/health
-curl -s https://rado-ai-tools.fly.dev/test/x402
-curl -s -X POST https://rado-ai-tools.fly.dev/test/endpoint_audit \
-  -H 'content-type: application/json' \
-  -d '{"url":"https://rado-ai-tools.fly.dev/health"}'
-curl -s -X POST https://rado-ai-tools.fly.dev/test/token_risk_scan \
-  -H 'content-type: application/json' \
-  -d '{"token":"0x036CbD53842c5426634e7929541eC2318f3dCF7e"}'
+npm ci
+npm run build
+npm test
+npm start
 ```
 
-Paid path: `POST /mcp` → `tools/list` (free) → `tools/call` without payment should return PaymentRequired. Pay USDC on Base Sepolia to `EVM_ADDRESS`.
+For local test routes, explicitly set `ENABLE_TEST_ENDPOINTS=true` and configure `TEST_ENDPOINT_TOKEN`. Never enable them publicly without authentication. `METRICS_TOKEN` must be at least 16 characters to expose `/metrics`.
 
-## Env
+Default network is Base Sepolia (`eip155:84532`). Never put a private key on the server; only the receiving address is required.
 
-```
-EVM_ADDRESS=0xYourPayTo
-FACILITATOR_URL=https://x402.org/facilitator
-PORT=8080
-X402_NETWORK=eip155:84532
-X402_PRICE=$0.02
-RPC_URL=https://sepolia.base.org
-PUBLIC_URL=https://rado-ai-tools.fly.dev
-ENABLE_TEST_ENDPOINTS=true
-TEST_ENDPOINT_TOKEN=
-```
-
-Mainnet facilitator is not `x402.org`. Use CDP or PayAI.
-
-## Deploy
+## Deployment
 
 ```bash
+fly secrets set EVM_ADDRESS=0x... FACILITATOR_URL=https://x402.org/facilitator RPC_URL=https://sepolia.base.org
 fly deploy
 ```
-
-`EVM_ADDRESS` must be set as a Fly secret. Never put a private key on the server.
