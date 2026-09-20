@@ -42,7 +42,8 @@ const SERVER_VERSION = "1.2.0";
 const ASSET = "USDC";
 const ASSET_VERSION = "2";
 const PUBLIC_URL = cfg.PUBLIC_URL.replace(/\/$/, "");
-const IS_TESTNET = cfg.X402_NETWORK.includes("84532") || cfg.X402_NETWORK.toLowerCase().includes("sepolia");
+const NETWORK = cfg.X402_NETWORK as `${string}:${string}`;
+const IS_TESTNET = NETWORK.includes("84532") || NETWORK.toLowerCase().includes("sepolia");
 const TEST_ENDPOINTS = cfg.ENABLE_TEST_ENDPOINTS === "true" && IS_TESTNET;
 const USDC_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
 const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -320,7 +321,7 @@ export async function runTokenRiskScan(args: { token: string }): Promise<ToolRes
     isContract: null,
     codeBytes: 0,
     nonce: null,
-    chain: cfg.X402_NETWORK,
+    chain: NETWORK,
   };
   const warnings: string[] = [];
   let score = checks.formatValid ? 100 : 0;
@@ -374,7 +375,16 @@ export async function runTokenRiskScan(args: { token: string }): Promise<ToolRes
   };
 }
 
-const toolCatalog = [
+type ToolSchema = Record<string, z.ZodTypeAny>;
+
+const toolCatalog: Array<{
+  alias: string;
+  description: string;
+  schema: ToolSchema;
+  inputSchema: Record<string, unknown>;
+  example: Record<string, unknown>;
+  handler: (a: Record<string, unknown>) => Promise<ToolResult>;
+}> = [
   {
     alias: "endpoint_audit",
     description: "Audit a URL for availability and MCP/x402 discovery signals. SSRF protected. Price: $0.02 USDC.",
@@ -457,11 +467,11 @@ function authorized(req: Request, kind: "test" | "metrics"): Response | null {
 async function main() {
   const facilitator = new HTTPFacilitatorClient({ url: cfg.FACILITATOR_URL });
   const resource = new x402ResourceServer(facilitator);
-  resource.register(cfg.X402_NETWORK, new ExactEvmScheme());
+  resource.register(NETWORK, new ExactEvmScheme());
   await resource.initialize();
   const accepts = await resource.buildPaymentRequirements({
     scheme: "exact",
-    network: cfg.X402_NETWORK,
+    network: NETWORK,
     payTo: cfg.EVM_ADDRESS as `0x${string}`,
     price: cfg.X402_PRICE,
     extra: { name: ASSET, version: ASSET_VERSION },
@@ -488,7 +498,7 @@ async function main() {
             status: "ok",
             version: SERVER_VERSION,
             network: cfg.X402_NETWORK,
-            tools: toolCatalog.map((t) => t.alias).concat("ping"),
+            tools: toolCatalog.map((t) => t.alias).concat(["ping"]),
           });
         }
         if (path === "/metrics") {
@@ -500,7 +510,7 @@ async function main() {
           const denied = authorized(req, "test");
           if (denied) return denied;
           metrics.testCalls++;
-          return json({ network: cfg.X402_NETWORK, payTo: cfg.EVM_ADDRESS, price: cfg.X402_PRICE, accepts });
+          return json({ network: NETWORK, payTo: cfg.EVM_ADDRESS, price: cfg.X402_PRICE, accepts });
         }
         if (path === "/test/endpoint_audit" && req.method === "POST") {
           const denied = authorized(req, "test");
