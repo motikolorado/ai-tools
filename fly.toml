@@ -7,6 +7,10 @@ primary_region = "iad"
 [env]
   PORT = "8080"
   FACILITATOR_URL = "https://x402.org/facilitator"
+  PUBLIC_URL = "https://rado-ai-tools.fly.dev"
+  X402_NETWORK = "eip155:84532"
+  RPC_URL = "https://sepolia.base.org"
+  ENABLE_TEST_ENDPOINTS = "true"
 
 [http_service]
   internal_port = 8080

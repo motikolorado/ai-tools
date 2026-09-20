@@ -1,9 +1,9 @@
 {
   "name": "ai-tools",
-  "description": "Multi-tool paid MCP server: endpoint_audit + token_risk_scan behind aliases. Shared x402 payment (Base Sepolia, $0.02), shared transport, shared response shape. Deployed at https://rado-ai-tools.fly.dev.",
+  "description": "Paid MCP tools: endpoint_audit + token_risk_scan. x402 USDC per call. Streamable HTTP at /mcp.",
   "repository": "https://github.com/motikolorado/ai-tools",
   "homepage": "https://rado-ai-tools.fly.dev",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "pricing": {
     "model": "pay-per-call",
@@ -15,12 +15,12 @@
   "tools": [
     {
       "name": "endpoint_audit",
-      "description": "Audit a URL: status, headers, JSON body keys, x402 readiness. Returns score 0-100 + up to 5 fixes.",
+      "description": "Audit a URL: status, headers, JSON keys, MCP server-card. Score 0-100 + up to 5 fixes.",
       "pricePerCall": "0.02"
     },
     {
       "name": "token_risk_scan",
-      "description": "Scan a token contract for common risks. Returns risk level, score 0-100, per-check details, and warnings.",
+      "description": "Scan an address on-chain (eth_getCode, nonce, format). Risk level + score 0-100.",
       "pricePerCall": "0.02"
     }
   ]

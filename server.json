@@ -1,0 +1,21 @@
+{
+  "$schema": "https://registry.modelcontextprotocol.io/schema/server.json",
+  "name": "io.github.motikolorado/ai-tools",
+  "description": "Paid MCP tools for endpoint audit and token risk scan via x402.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/motikolorado/ai-tools"
+  },
+  "version": "1.1.0",
+  "packages": [
+    {
+      "name": "@motikolorado/ai-tools",
+      "type": "npm",
+      "version": "1.1.0",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://rado-ai-tools.fly.dev/mcp"
+      }
+    }
+  ]
+}
