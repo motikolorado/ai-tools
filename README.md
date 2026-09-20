@@ -10,7 +10,7 @@ Paid MCP server providing `endpoint_audit` and `token_risk_scan` over Streamable
 - Test routes are disabled by default and require a test token when configured.
 - Metrics are private unless `METRICS_TOKEN` is configured.
 - Startup configuration is validated before the server starts.
-- CI runs type checking, tests, dependency auditing, and a Docker build.
+- CI typechecks, tests, audits, and builds the image. Pushes to `main` deploy `rado-ai-tools` on Fly.
 
 ## Tools
 
@@ -37,7 +37,24 @@ Default network is Base Sepolia (`eip155:84532`). Never put a private key on the
 
 ## Deployment
 
+App: `rado-ai-tools` (`https://rado-ai-tools.fly.dev`).
+
+One-time Fly secrets (not GitHub secrets):
+
 ```bash
-fly secrets set EVM_ADDRESS=0x... FACILITATOR_URL=https://x402.org/facilitator RPC_URL=https://sepolia.base.org
-fly deploy
+fly secrets set EVM_ADDRESS=0x... FACILITATOR_URL=https://x402.org/facilitator RPC_URL=https://sepolia.base.org --app rado-ai-tools
+```
+
+GitHub Actions deploys on every push to `main`. Add a repo Action secret named `FLY_API_TOKEN` or `FLY_DEPLOY_TOKEN`:
+
+```bash
+fly tokens create deploy --app rado-ai-tools
+```
+
+Then paste the token in the repo: Settings → Secrets and variables → Actions.
+
+Manual deploy:
+
+```bash
+fly deploy --app rado-ai-tools --remote-only
 ```

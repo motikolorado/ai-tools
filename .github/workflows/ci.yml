@@ -1,10 +1,14 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -19,9 +23,36 @@ jobs:
       - run: npm test
       - run: npm audit --audit-level=high
       - run: docker build -t ai-tools:ci .
-      - name: Install Flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@v1
+
+  deploy:
+    needs: verify
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: fly-deploy-rado-ai-tools
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy to Fly
         env:
-          FLY_API_TOKEN: ${{ secrets.FLY_DEPLOY_TOKEN }}
-        run: flyctl deploy --name ai-tools --remote-only
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN || secrets.FLY_DEPLOY_TOKEN }}
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "Missing repo secret FLY_API_TOKEN or FLY_DEPLOY_TOKEN."
+            echo "Create a deploy token: fly tokens create deploy --app rado-ai-tools"
+            echo "Add it at Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          flyctl deploy --remote-only --app rado-ai-tools --config fly.toml --yes
+      - name: Smoke check /health
+        run: |
+          for i in 1 2 3 4 5 6; do
+            echo "attempt $i"
+            body=$(curl -fsS https://rado-ai-tools.fly.dev/health || true)
+            echo "$body"
+            echo "$body" | grep -q '"status":"ok"' && exit 0
+            sleep 5
+          done
+          echo "health check did not return status=ok"
+          exit 1
