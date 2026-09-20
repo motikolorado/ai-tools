@@ -3,7 +3,7 @@
   "description": "Paid MCP tools for endpoint auditing and conservative on-chain address inspection.",
   "repository": "https://github.com/motikolorado/ai-tools",
   "homepage": "https://rado-ai-tools.fly.dev",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "license": "MIT",
   "pricing": {
     "model": "pay-per-call",
